@@ -2,6 +2,7 @@
   "name": "date-time-immutable",
   "version": "0.1.0",
   "private": true,
+  "main": "build/dist/index.js",
   "dependencies": {
     "moment": "latest",
     "react-scripts-ts": "2.14.0"

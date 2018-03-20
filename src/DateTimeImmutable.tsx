@@ -1,11 +1,16 @@
 import * as moment from 'moment';
 import Month, {idFromMonth, monthFromId} from './Month';
 
-type ModifyInputArgument1 = moment.Duration | number | string | moment.FromTo | moment.DurationInputObject | void;
-type ModifyInputArgument2 = moment.unitOfTime.DurationConstructor;
-type Moment = moment.Moment;
-type Diff = moment.unitOfTime.Diff;
-type StartOf = moment.unitOfTime.StartOf;
+export type ModifyInputArgument1 = moment.Duration
+    | number
+    | string
+    | moment.FromTo
+    | moment.DurationInputObject
+    | void;
+export type ModifyInputArgument2 = moment.unitOfTime.DurationConstructor;
+export type Moment = moment.Moment;
+export type Diff = moment.unitOfTime.Diff;
+export type StartOf = moment.unitOfTime.StartOf;
 
 /**
  * Immutable Date object inspired by PHP's DateTimeImmutable

@@ -87,9 +87,22 @@ const idFromMonth = (month: Month): number => {
     }
 };
 
-export {
-    monthFromId,
-    idFromMonth
+/**
+ * Determine the number of days for the given month and year
+ * Month is 1-indexed (January is 1, February is 2, etc).
+ *
+ * @param {Month} month
+ * @param {number} year
+ */
+const daysInMonth = (month: Month, year: number) => {
+    const monthId = idFromMonth(month);
+
+    return new Date(year, monthId + 1, 0).getDate();
 };
 
-export default Month;
+export {
+    monthFromId,
+    idFromMonth,
+    daysInMonth,
+    Month,
+};

@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import Month, {idFromMonth, monthFromId} from './Month';
+import {idFromMonth, Month, monthFromId} from './Month';
 
 export type ModifyInputArgument1 = moment.Duration
     | number
@@ -15,13 +15,14 @@ export type StartOf = moment.unitOfTime.StartOf;
 /**
  * Immutable Date object inspired by PHP's DateTimeImmutable
  */
-export default class DateTimeImmutable {
-
+export class DateTimeImmutable {
     _moment: Moment;
 
-    constructor(input?: Moment | Date | string, format?: string) {
+    constructor(input?: DateTimeImmutable | Moment | Date | string, format?: string) {
         if (arguments.length === 0) {
             this._moment = moment();
+        } else if (input instanceof DateTimeImmutable) {
+            this._moment = input._moment.clone();
         } else if (input instanceof Date) {
             this._moment = moment(input);
         } else if (moment.isMoment(input)) {

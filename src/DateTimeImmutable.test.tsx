@@ -1,5 +1,5 @@
-import DateTimeImmutable from './DateTimeImmutable';
-import Month, {idFromMonth} from './Month';
+import {DateTimeImmutable} from './DateTimeImmutable';
+import {idFromMonth, Month} from './Month';
 
 const testDate = '2018-03-16';
 const testTime = '14:58:03.200';

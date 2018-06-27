@@ -16,6 +16,7 @@ export type StartOf = moment.unitOfTime.StartOf;
  * Immutable Date object inspired by PHP's DateTimeImmutable
  */
 export class DateTimeImmutable {
+    _info: string;
     _moment: Moment;
 
     constructor(input?: DateTimeImmutable | Moment | Date | string, format?: string) {
@@ -40,6 +41,8 @@ export class DateTimeImmutable {
         if (!this._moment.isValid()) {
             throw new RangeError('Could not create a valid date');
         }
+
+        this._info = this._moment.format('YYYY-MM-DD HH:mm:ssZ');
     }
 
     /**

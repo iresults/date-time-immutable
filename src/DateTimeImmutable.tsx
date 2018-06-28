@@ -12,34 +12,52 @@ export type Moment = moment.Moment;
 export type Diff = moment.unitOfTime.Diff;
 export type StartOf = moment.unitOfTime.StartOf;
 
+const cloneDate = (input: Date) => {
+    return new Date(input.getTime());
+};
+
 /**
  * Immutable Date object inspired by PHP's DateTimeImmutable
  */
 export class DateTimeImmutable {
-    _moment: Moment;
+    _moment?: Moment;
+    _dateInstance: Date;
 
     constructor(input?: DateTimeImmutable | Moment | Date | string, format?: string) {
         if (arguments.length === 0) {
-            this._moment = moment();
+            this._dateInstance = new Date();
         } else if (input instanceof DateTimeImmutable) {
-            this._moment = input._moment.clone();
+            this._dateInstance = new Date(input.timestamp);
         } else if (input instanceof Date) {
-            this._moment = moment(input);
+            this._dateInstance = cloneDate(input);
         } else if (moment.isMoment(input)) {
-            this._moment = input.clone();
+            const momentInstance = input.clone();
+            this._dateInstance = momentInstance.toDate();
+            this._moment = momentInstance;
         } else if (typeof input === 'string') {
             if (typeof format !== 'string') {
                 format = 'YYYY-MM-DD HH:mm:ssZ';
             }
 
-            this._moment = moment(input, format);
+            const momentInstance = moment(input, format);
+            this._dateInstance = momentInstance.toDate();
+            this._moment = momentInstance;
         } else {
             throw new TypeError('Invalid input type ' + (typeof input));
         }
 
-        if (!this._moment.isValid()) {
+        if (isNaN(this._dateInstance.valueOf())) {
             throw new RangeError('Could not create a valid date');
         }
+    }
+
+    /**
+     * Get the raw JavaScript Date version
+     *
+     * @return {Date}
+     */
+    get dateInstance(): Date {
+        return cloneDate(this._dateInstance);
     }
 
     /**
@@ -48,7 +66,7 @@ export class DateTimeImmutable {
      * @returns {number}
      */
     get date(): number {
-        return this._moment.date();
+        return this._dateInstance.getDate();
     }
 
     /**
@@ -57,7 +75,7 @@ export class DateTimeImmutable {
      * @returns {Month}
      */
     get month(): Month {
-        return monthFromId(this._moment.month());
+        return monthFromId(this._dateInstance.getMonth());
     }
 
     /**
@@ -66,7 +84,7 @@ export class DateTimeImmutable {
      * @returns {number}
      */
     get monthId(): number {
-        return this._moment.month();
+        return this._dateInstance.getMonth();
     }
 
     /**
@@ -75,7 +93,7 @@ export class DateTimeImmutable {
      * @returns {number}
      */
     get year(): number {
-        return this._moment.year();
+        return this._dateInstance.getFullYear();
     }
 
     /**
@@ -84,7 +102,7 @@ export class DateTimeImmutable {
      * @returns {number}
      */
     get timestamp(): number {
-        return this._moment.valueOf();
+        return this._dateInstance.valueOf();
     }
 
     /**
@@ -93,7 +111,22 @@ export class DateTimeImmutable {
      * @returns {number}
      */
     get isoWeekday(): number {
-        return this._moment.isoWeekday();
+        const day = this._dateInstance.getDay();
+        if (day === 0) {
+            return 7;
+        }
+
+        return day;
+    }
+
+    /**
+     * Get the day of the week, where 0 represents Sunday
+     *
+     *
+     * @return {number}
+     */
+    get day(): number {
+        return this._dateInstance.getDay();
     }
 
     /**
@@ -102,7 +135,7 @@ export class DateTimeImmutable {
      * @returns {number}
      */
     valueOf(): number {
-        return this._moment.valueOf();
+        return this._dateInstance.valueOf();
     }
 
     /**
@@ -114,7 +147,7 @@ export class DateTimeImmutable {
      * @return string
      */
     format(format: string) {
-        return this._moment.format(format);
+        return this.getMomentInstance().format(format);
     }
 
     /**
@@ -126,7 +159,7 @@ export class DateTimeImmutable {
      * @returns {DateTimeImmutable}
      */
     add(amount?: ModifyInputArgument1, unit?: ModifyInputArgument2): DateTimeImmutable {
-        let clone = this._moment.clone();
+        let clone = this.getMomentInstance().clone();
         clone.add(amount, unit);
 
         return new DateTimeImmutable(clone);
@@ -141,7 +174,7 @@ export class DateTimeImmutable {
      * @returns {DateTimeImmutable}
      */
     subtract(amount?: ModifyInputArgument1, unit?: ModifyInputArgument2): DateTimeImmutable {
-        let clone = this._moment.clone();
+        let clone = this.getMomentInstance().clone();
         clone.subtract(amount, unit);
 
         return new DateTimeImmutable(clone);
@@ -155,10 +188,10 @@ export class DateTimeImmutable {
      */
     diff(otherDate: DateTimeImmutable | Moment, unitOfTime?: Diff): number {
         if (otherDate instanceof DateTimeImmutable) {
-            return this.diff(otherDate._moment, unitOfTime);
+            return this.diff(otherDate.getMomentInstance(), unitOfTime);
         }
 
-        return this._moment.diff(otherDate, unitOfTime);
+        return this.getMomentInstance().diff(otherDate, unitOfTime);
     }
 
     /**
@@ -182,7 +215,12 @@ export class DateTimeImmutable {
             throw new TypeError('Argument "from" must be an instance of DateTimeImmutable');
         }
 
-        return this._moment.isBetween(from._moment, to._moment, granularity, inclusivity);
+        return this.getMomentInstance().isBetween(
+            from.getMomentInstance(),
+            to.getMomentInstance(),
+            granularity,
+            inclusivity
+        );
     }
 
     /**
@@ -195,10 +233,10 @@ export class DateTimeImmutable {
      */
     isBefore(otherDate: DateTimeImmutable | Moment, units?: StartOf): boolean {
         if (otherDate instanceof DateTimeImmutable) {
-            return this._moment.isBefore(otherDate._moment, units);
+            return this.getMomentInstance().isBefore(otherDate.getMomentInstance(), units);
         }
 
-        return this._moment.isBefore(otherDate, units);
+        return this.getMomentInstance().isBefore(otherDate, units);
     }
 
     /**
@@ -211,10 +249,10 @@ export class DateTimeImmutable {
      */
     isAfter(otherDate: DateTimeImmutable | Moment, units?: StartOf): boolean {
         if (otherDate instanceof DateTimeImmutable) {
-            return this._moment.isAfter(otherDate._moment, units);
+            return this.getMomentInstance().isAfter(otherDate.getMomentInstance(), units);
         }
 
-        return this._moment.isAfter(otherDate, units);
+        return this.getMomentInstance().isAfter(otherDate, units);
     }
 
     /**
@@ -259,17 +297,19 @@ export class DateTimeImmutable {
      * @returns {DateTimeImmutable}
      */
     setTimeWithOverflow(hour: number, minute?: number, second?: number, millisecond?: number): DateTimeImmutable {
-        let clone = this._moment.clone();
+        let clone = cloneDate(this._dateInstance);
 
-        clone.hour(hour);
-        if (undefined !== minute) {
-            clone.minute(minute);
+        if (hour !== clone.getHours()) {
+            clone.setHours(hour);
         }
-        if (undefined !== second) {
-            clone.second(second);
+        if (undefined !== minute && minute !== clone.getMinutes()) {
+            clone.setMinutes(minute);
         }
-        if (undefined !== millisecond) {
-            clone.millisecond(millisecond);
+        if (undefined !== second && second !== clone.getSeconds()) {
+            clone.setSeconds(second);
+        }
+        if (undefined !== millisecond && millisecond !== clone.getMilliseconds()) {
+            clone.setMilliseconds(millisecond);
         }
 
         return new DateTimeImmutable(clone);
@@ -278,46 +318,61 @@ export class DateTimeImmutable {
     /**
      * Return a clone with the given date
      *
-     * A `RangeError` will be thrown if `day` is bigger than the maximum number of days in the target month, or if `day`
-     * is lower than 1.
+     * A `RangeError` will be thrown if `date` is bigger than the maximum number of days in the target month, or if
+     * `date` is lower than 1.
      *
      * To allow overflows use `setDateWithOverflow()`
      *
      * @param {number} year
      * @param {Month} month
-     * @param {number} day
+     * @param {number} date
      * @returns {DateTimeImmutable}
      */
-    setDate(year: number, month: Month, day: number): DateTimeImmutable {
-        if (day > this.determineDaysInMonth(month, year)) {
-            throw new RangeError(`Day "${day}" would overflow into the next month`);
+    setDate(year: number, month: Month, date: number): DateTimeImmutable {
+        if (date > this.determineDaysInMonth(month, year)) {
+            throw new RangeError(`Day "${date}" would overflow into the next month`);
         }
-        if (day < 1) {
+        if (date < 1) {
             throw new RangeError(`Day must be bigger than zero`);
         }
 
-        return this.setDateWithOverflow(year, idFromMonth(month), day);
+        return this.setDateWithOverflow(year, idFromMonth(month), date);
     }
 
     /**
      * Return a clone with the given date with overflow
      *
      * If `monthId` is bigger than 11 the date will overflow to the following year(s).
-     * If `day` is bigger than the month's number of days the date will overflow to the following month(s).
+     * If `date` is bigger than the month's number of days the date will overflow to the following month(s).
      *
      * @param {number} year
      * @param {number} monthId
-     * @param {number} day
+     * @param {number} date
      * @returns {DateTimeImmutable}
      */
-    setDateWithOverflow(year: number, monthId: number, day: number): DateTimeImmutable {
-        let clone = this._moment.clone();
+    setDateWithOverflow(year: number, monthId: number, date: number): DateTimeImmutable {
+        let clone = cloneDate(this._dateInstance);
 
-        clone.year(year);
-        clone.month(monthId);
-        clone.date(day);
+        if (year !== clone.getFullYear()) {
+            clone.setFullYear(year);
+        }
+        if (monthId !== clone.getMonth()) {
+            clone.setMonth(monthId);
+        }
+        if (date !== clone.getDate()) {
+            clone.setDate(date);
+        }
 
         return new DateTimeImmutable(clone);
+    }
+
+    /**
+     * Return a clone of the Date
+     *
+     * @return {DateTimeImmutable}
+     */
+    clone(): DateTimeImmutable {
+        return new DateTimeImmutable(this);
     }
 
     /**
@@ -330,5 +385,17 @@ export class DateTimeImmutable {
         const monthId = idFromMonth(month);
 
         return new Date(year, monthId + 1, 0).getDate();
+    }
+
+    /**
+     * Return the moment instance
+     *
+     * @return {moment.Moment}
+     */
+    private getMomentInstance() {
+        if (!this._moment) {
+            this._moment = moment(this._dateInstance);
+        }
+        return this._moment;
     }
 }

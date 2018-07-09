@@ -151,6 +151,24 @@ export class DateTimeImmutable {
     }
 
     /**
+     * Return the string representation of the date
+     *
+     * @return string
+     */
+    toString(): string {
+        return this.getMomentInstance().toString();
+    }
+
+    /**
+     * Return the string representation of the date
+     *
+     * @return string
+     */
+    toLocaleString(): string {
+        return this.getMomentInstance().toLocaleString();
+    }
+
+    /**
      * Add the given time to the clone
      *
      * @see https://momentjs.com/docs/#/manipulating/add/
